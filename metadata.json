@@ -1,0 +1,8 @@
+{
+  "name": "LocalHub - Local Business Digital Platform",
+  "description": "Digital storefront and discovery platform for local businesses, shops, and service providers. Explore products, services, orders, and reviews.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
