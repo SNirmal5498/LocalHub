@@ -2,6 +2,7 @@ import React from 'react';
 import { Service } from '../../types/index.js';
 import { Clock, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { ImageWithFallback } from '../common/ImageWithFallback.js';
+import { formatCurrency } from '../../utils/currency.js';
 
 interface ServiceCardProps {
   service: Service;
@@ -23,7 +24,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({ service, onEnquire }) 
           </div>
           <div className="text-right shrink-0">
             <span className="text-lg font-bold text-neutral-900 dark:text-neutral-100 tabular-nums">
-              ${service.price.toFixed(2)}
+              {formatCurrency(service.price)}
             </span>
             <p className="text-[11px] text-neutral-400">est. price</p>
           </div>

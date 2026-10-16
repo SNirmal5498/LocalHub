@@ -106,8 +106,58 @@ async function initBaseSystemData() {
       await Message.deleteMany({ business: { $in: demoIds } });
       console.log(`[MongoDB] Cleaned up legacy demo storefronts and records.`);
     }
+
+    // 4. Automatically heal and geocode real business locations
+    await healBusinessLocations();
   } catch (err) {
     console.error('[MongoDB] Error during system initialization:', err);
+  }
+}
+
+/**
+ * Automatically inspects stored businesses and resolves actual coordinates for any
+ * businesses that have missing coordinates or unintended San Francisco placeholder coordinates.
+ */
+export async function healBusinessLocations() {
+  try {
+    const { Business } = await import('../models/Business.js');
+    const { geocodeAddress, isSanFranciscoPlaceholder, isValidCoordinate } = await import('../utils/geocoder.js');
+
+    const businesses = await Business.find({});
+    for (const b of businesses) {
+      const needsHeal =
+        !isValidCoordinate(b.latitude, b.longitude) ||
+        isSanFranciscoPlaceholder(b.latitude, b.longitude, b.city);
+
+      if (needsHeal) {
+        console.log(`[Location Healing] Geocoding real coordinates for business "${b.name}" in "${b.city}, ${b.state}"...`);
+        const result = await geocodeAddress({
+          address: b.address,
+          city: b.city,
+          state: b.state,
+          postalCode: b.postalCode,
+          country: b.country || 'India',
+        });
+
+        if (result && isValidCoordinate(result.latitude, result.longitude)) {
+          b.latitude = result.latitude;
+          b.longitude = result.longitude;
+          if (!b.country) b.country = 'India';
+          await b.save();
+          console.log(`[Location Healing] ✅ Updated "${b.name}" coordinates to [${result.latitude}, ${result.longitude}] (${result.displayName})`);
+        } else {
+          // If geocoding fails, clear the misleading SF placeholder rather than leaving it pointing to San Francisco
+          if (isSanFranciscoPlaceholder(b.latitude, b.longitude, b.city)) {
+            b.latitude = null;
+            b.longitude = null;
+            await b.save();
+            console.log(`[Location Healing] ⚠️ Unset unintended placeholder coordinates for "${b.name}".`);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[Location Healing] Error during location auto-repair:', err);
   }
 }
 

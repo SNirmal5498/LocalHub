@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api.js';
 import { Order } from '../types/index.js';
 import { CheckCircle2, ShoppingBag, Clock, Store, ArrowRight, MapPin, Phone } from 'lucide-react';
+import { formatCurrency } from '../utils/currency.js';
 
 export const OrderConfirmationPage: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
@@ -114,11 +115,11 @@ export const OrderConfirmationPage: React.FC = () => {
                   {item.name}
                 </span>
                 <span className="text-neutral-500 block">
-                  Qty: {item.quantity} × ${item.price.toFixed(2)}
+                  Qty: {item.quantity} × {formatCurrency(item.price)}
                 </span>
               </div>
               <span className="font-bold text-neutral-900 dark:text-white tabular-nums">
-                ${(item.price * item.quantity).toFixed(2)}
+                {formatCurrency(item.price * item.quantity)}
               </span>
             </div>
           ))}
@@ -128,14 +129,14 @@ export const OrderConfirmationPage: React.FC = () => {
           <div className="flex justify-between">
             <span>Subtotal</span>
             <span className="tabular-nums font-semibold text-neutral-900 dark:text-white">
-              ${order.subtotal.toFixed(2)}
+              {formatCurrency(order.subtotal)}
             </span>
           </div>
 
           {order.discount > 0 && (
             <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
               <span>Coupon Discount ({order.couponCode})</span>
-              <span className="tabular-nums font-semibold">-${order.discount.toFixed(2)}</span>
+              <span className="tabular-nums font-semibold">-{formatCurrency(order.discount)}</span>
             </div>
           )}
 
@@ -157,7 +158,7 @@ export const OrderConfirmationPage: React.FC = () => {
 
           <div className="flex justify-between text-base font-bold text-neutral-900 dark:text-white pt-2 border-t border-neutral-100 dark:border-neutral-800">
             <span>Total Amount</span>
-            <span className="tabular-nums">${order.totalAmount.toFixed(2)}</span>
+            <span className="tabular-nums">{formatCurrency(order.totalAmount)}</span>
           </div>
         </div>
       </div>

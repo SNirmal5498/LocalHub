@@ -16,7 +16,8 @@ import {
   Pie,
   Cell,
 } from 'recharts';
-import { DollarSign, ShoppingBag, TrendingUp, Users } from 'lucide-react';
+import { IndianRupee, ShoppingBag, TrendingUp, Users } from 'lucide-react';
+import { formatCurrency } from '../../utils/currency.js';
 
 export const BusinessAnalyticsPage: React.FC = () => {
   const { business } = useOutletContext<{ business: Business }>();
@@ -96,7 +97,7 @@ export const BusinessAnalyticsPage: React.FC = () => {
         <div className="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 space-y-1">
           <span className="text-xs font-semibold text-neutral-500">Total Gross Sales</span>
           <div className="text-2xl font-black text-neutral-900 dark:text-white tabular-nums">
-            ${summary.totalRevenue.toFixed(2)}
+            {formatCurrency(summary.totalRevenue)}
           </div>
           <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
             +18.4% from last period
@@ -106,7 +107,7 @@ export const BusinessAnalyticsPage: React.FC = () => {
         <div className="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 space-y-1">
           <span className="text-xs font-semibold text-neutral-500">Average Order Value</span>
           <div className="text-2xl font-black text-neutral-900 dark:text-white tabular-nums">
-            ${summary.avgOrderValue.toFixed(2)}
+            {formatCurrency(summary.avgOrderValue)}
           </div>
           <span className="text-[11px] text-neutral-400 font-medium">
             Per fulfilled basket
@@ -155,7 +156,7 @@ export const BusinessAnalyticsPage: React.FC = () => {
               <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.15} />
               <XAxis dataKey="date" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip formatter={(value: any) => [`$${Number(value).toFixed(2)}`, 'Revenue']} />
+              <Tooltip formatter={(value: any) => [formatCurrency(value), 'Revenue']} />
               <Area
                 type="monotone"
                 dataKey="revenue"
@@ -222,7 +223,7 @@ export const BusinessAnalyticsPage: React.FC = () => {
                     </span>
                   </div>
                   <span className="font-bold text-neutral-900 dark:text-white tabular-nums text-sm">
-                    ${item.revenue.toFixed(2)}
+                    {formatCurrency(item.revenue)}
                   </span>
                 </div>
               ))

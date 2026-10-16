@@ -10,7 +10,7 @@ A production-style **MERN Stack digital platform** enabling small and local busi
 - **Ready-Made Digital Storefront**: Branded store URL (`/business/:slug`), photo gallery, business bio, contact information, and weekly operating hours schedule.
 - **Product & Inventory Catalog**: Full catalog management with retail prices, discount offers, stock quantity tracking, SKUs, and in-stock toggles.
 - **Services & Procedures Menu**: Service booking with durations, estimates, and customer inquiry triggers (e.g. OLED screen repair, diagnostics, tailoring).
-- **Promotional Coupons & Offers**: Percentage (%) or fixed ($) discount codes (e.g. `SWEET20`, `FIXIT10`, `FASHION15`), minimum order thresholds, and active date ranges.
+- **Promotional Coupons & Offers**: Percentage (%) or fixed (₹) discount codes (e.g. `SWEET20`, `FIXIT10`, `FASHION15`), minimum order thresholds, and active date ranges.
 - **Real-Time Order Dashboard**: Visual lifecycle transitions: `Pending` ➔ `Accepted` ➔ `Preparing` ➔ `Ready` ➔ `Completed` / `Cancelled`.
 - **Customer Feedback & Direct Owner Responses**: Collect 1–5 star reviews and respond publicly to build community trust.
 - **Business Performance Analytics**: Visual Recharts dashboards tracking daily gross revenue trends, order volume, popular products, and customer counts.
@@ -40,3 +40,9 @@ A production-style **MERN Stack digital platform** enabling small and local busi
 - **Backend**: Node.js, Express.js REST APIs, TypeScript (tsx)
 - **Security & Auth**: JWT (JSON Web Tokens), bcryptjs password hashing, role-based authorization middleware
 - **Data Persistence**: Persistent ACID document database engine with disk storage, Mongoose/MongoDB Atlas compatible
+<<<<<<< HEAD
+=======
+
+---
+
+>>>>>>> 41269a2 (Fix currency formatting and business locations)

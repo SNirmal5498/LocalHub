@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { Offer, Business } from '../db/db.js';
 import { authenticateToken, AuthRequest, requireRole } from '../middleware/auth.js';
+import { formatCurrency } from '../utils/currency.js';
 
 const router = Router();
 
@@ -49,7 +50,7 @@ router.post('/validate', async (req, res) => {
     if (offer.minimumOrder && orderSubtotal < offer.minimumOrder) {
       return res.status(400).json({
         success: false,
-        message: `Order subtotal of $${orderSubtotal.toFixed(2)} does not meet the minimum requirement of $${offer.minimumOrder.toFixed(2)} for this coupon.`,
+        message: `Order subtotal of ${formatCurrency(orderSubtotal)} does not meet the minimum requirement of ${formatCurrency(offer.minimumOrder)} for this coupon.`,
       });
     }
 

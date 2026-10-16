@@ -3,7 +3,7 @@ import { Link, useOutletContext } from 'react-router-dom';
 import { api } from '../../services/api.js';
 import { Business, Order, Review } from '../../types/index.js';
 import {
-  DollarSign,
+  IndianRupee,
   ShoppingBag,
   Star,
   Users,
@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react';
+import { formatCurrency } from '../../utils/currency.js';
 import {
   AreaChart,
   Area,
@@ -127,10 +128,10 @@ export const BusinessDashboardPage: React.FC = () => {
         <div className="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 space-y-1">
           <div className="flex items-center justify-between text-neutral-500">
             <span className="text-[11px] font-semibold">Total Revenue</span>
-            <DollarSign className="w-4 h-4 text-emerald-500" />
+            <IndianRupee className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-xl sm:text-2xl font-black text-neutral-900 dark:text-white tabular-nums">
-            ${summary.totalRevenue.toFixed(2)}
+            {formatCurrency(summary.totalRevenue)}
           </div>
           <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
             Completed orders
@@ -224,7 +225,7 @@ export const BusinessDashboardPage: React.FC = () => {
                 <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip
                   formatter={(value: any, name: any) =>
-                    name === 'revenue' ? [`$${Number(value).toFixed(2)}`, 'Revenue'] : [value, 'Orders']
+                    name === 'revenue' ? [formatCurrency(value), 'Revenue'] : [value, 'Orders']
                   }
                 />
                 <Area
@@ -266,7 +267,7 @@ export const BusinessDashboardPage: React.FC = () => {
                     </span>
                   </div>
                   <span className="font-bold text-neutral-900 dark:text-white tabular-nums">
-                    ${item.revenue.toFixed(2)}
+                    {formatCurrency(item.revenue)}
                   </span>
                 </div>
               ))
@@ -331,7 +332,7 @@ export const BusinessDashboardPage: React.FC = () => {
                       {order.deliveryType}
                     </td>
                     <td className="py-3 font-bold text-neutral-900 dark:text-white tabular-nums">
-                      ${order.totalAmount.toFixed(2)}
+                      {formatCurrency(order.totalAmount)}
                     </td>
                     <td className="py-3">
                       <span

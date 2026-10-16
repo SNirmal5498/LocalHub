@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api.js';
 import { Order } from '../../types/index.js';
 import { ShoppingBag, Store, User, Clock, CheckCircle2 } from 'lucide-react';
+import { formatCurrency } from '../../utils/currency.js';
 
 export const AdminOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -81,7 +82,7 @@ export const AdminOrdersPage: React.FC = () => {
                     </td>
 
                     <td className="py-3 px-4 font-bold text-neutral-900 dark:text-white tabular-nums">
-                      ${o.totalAmount.toFixed(2)}
+                      {formatCurrency(o.totalAmount)}
                     </td>
 
                     <td className="py-3 px-4 uppercase text-[10px] font-semibold text-neutral-500">

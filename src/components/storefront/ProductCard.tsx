@@ -3,6 +3,7 @@ import { Product } from '../../types/index.js';
 import { useCart } from '../../context/CartContext.js';
 import { ImageWithFallback } from '../common/ImageWithFallback.js';
 import { Plus, Check, ShoppingBag } from 'lucide-react';
+import { formatCurrency } from '../../utils/currency.js';
 
 interface ProductCardProps {
   product: Product;
@@ -40,7 +41,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, businessName 
 
         {product.discountPrice !== null && product.discountPrice !== undefined && (
           <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-amber-500 text-neutral-950 text-[11px] font-bold shadow-xs">
-            Save ${(product.price - product.discountPrice).toFixed(0)}
+            Save {formatCurrency(product.price - product.discountPrice, { maximumFractionDigits: 0, minimumFractionDigits: 0 })}
           </div>
         )}
 
@@ -84,11 +85,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, businessName 
         <div className="pt-4 mt-3 border-t border-neutral-100 dark:border-neutral-800/80 flex items-center justify-between">
           <div className="flex items-baseline gap-1.5">
             <span className="text-base font-bold text-neutral-900 dark:text-neutral-100 tabular-nums">
-              ${price.toFixed(2)}
+              {formatCurrency(price)}
             </span>
             {product.discountPrice !== null && product.discountPrice !== undefined && (
               <span className="text-xs text-neutral-400 line-through tabular-nums">
-                ${product.price.toFixed(2)}
+                {formatCurrency(product.price)}
               </span>
             )}
           </div>

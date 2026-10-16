@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api } from '../services/api.js';
 import { Order } from '../types/index.js';
 import { ShoppingBag, ArrowRight, Clock, Store, CheckCircle2 } from 'lucide-react';
+import { formatCurrency } from '../utils/currency.js';
 
 export const CustomerOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -114,7 +115,7 @@ export const CustomerOrdersPage: React.FC = () => {
 
               <div className="flex sm:flex-col items-center sm:items-end justify-between border-t sm:border-t-0 pt-3 sm:pt-0 border-neutral-100 dark:border-neutral-800 gap-3">
                 <span className="text-base font-bold text-neutral-900 dark:text-white tabular-nums">
-                  ${order.totalAmount.toFixed(2)}
+                  {formatCurrency(order.totalAmount)}
                 </span>
 
                 <Link

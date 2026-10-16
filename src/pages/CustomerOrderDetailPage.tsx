@@ -14,6 +14,7 @@ import {
   Star,
   XCircle,
 } from 'lucide-react';
+import { formatCurrency } from '../utils/currency.js';
 
 export const CustomerOrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -184,11 +185,11 @@ export const CustomerOrderDetailPage: React.FC = () => {
                     {item.name}
                   </h4>
                   <p className="text-neutral-500">
-                    Qty: {item.quantity} × ${item.price.toFixed(2)}
+                    Qty: {item.quantity} × {formatCurrency(item.price)}
                   </p>
                 </div>
                 <span className="font-bold text-neutral-900 dark:text-white tabular-nums">
-                  ${(item.price * item.quantity).toFixed(2)}
+                  {formatCurrency(item.price * item.quantity)}
                 </span>
               </div>
             ))}
@@ -198,14 +199,14 @@ export const CustomerOrderDetailPage: React.FC = () => {
             <div className="flex justify-between">
               <span>Subtotal</span>
               <span className="tabular-nums font-semibold text-neutral-900 dark:text-white">
-                ${order.subtotal.toFixed(2)}
+                {formatCurrency(order.subtotal)}
               </span>
             </div>
 
             {order.discount > 0 && (
               <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                 <span>Coupon ({order.couponCode})</span>
-                <span className="tabular-nums font-semibold">-${order.discount.toFixed(2)}</span>
+                <span className="tabular-nums font-semibold">-{formatCurrency(order.discount)}</span>
               </div>
             )}
 
@@ -216,7 +217,7 @@ export const CustomerOrderDetailPage: React.FC = () => {
 
             <div className="flex justify-between text-base font-bold text-neutral-900 dark:text-white pt-2 border-t border-neutral-100 dark:border-neutral-800">
               <span>Total Paid / Due</span>
-              <span className="tabular-nums">${order.totalAmount.toFixed(2)}</span>
+              <span className="tabular-nums">{formatCurrency(order.totalAmount)}</span>
             </div>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { Order, Product, Business, Notification, Offer } from '../db/db.js';
 import { authenticateToken, AuthRequest, requireRole } from '../middleware/auth.js';
+import { formatCurrency } from '../utils/currency.js';
 
 const router = Router();
 
@@ -72,7 +73,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     if (business.minOrderAmount && subtotal < business.minOrderAmount) {
       return res.status(400).json({
         success: false,
-        message: `Minimum order amount for ${business.name} is $${business.minOrderAmount.toFixed(2)}. Current subtotal: $${subtotal.toFixed(2)}`,
+        message: `Minimum order amount for ${business.name} is ${formatCurrency(business.minOrderAmount)}. Current subtotal: ${formatCurrency(subtotal)}`,
       });
     }
 
@@ -126,7 +127,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     await Notification.create({
       user: business.owner,
       title: `New Order #${orderNumber}`,
-      message: `${req.user!.name} placed an order for $${totalAmount.toFixed(2)} (${deliveryType || 'pickup'}).`,
+      message: `${req.user!.name} placed an order for ${formatCurrency(totalAmount)} (${deliveryType || 'pickup'}).`,
       type: 'order',
       relatedId: order._id,
       isRead: false,

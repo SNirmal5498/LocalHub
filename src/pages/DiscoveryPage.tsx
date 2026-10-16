@@ -1,10 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { api } from '../services/api.js';
 import { Business, Category } from '../types/index.js';
 import { RatingStars } from '../components/common/RatingStars.js';
 import { ImageWithFallback } from '../components/common/ImageWithFallback.js';
 import { MapViewer } from '../components/common/MapViewer.js';
+import {
+  openDrivingDirections,
+  calculateDistanceKm,
+  formatDistance,
+  getUserCurrentLocation,
+} from '../utils/location.js';
 import {
   Search,
   MapPin,
@@ -17,6 +23,8 @@ import {
   Tag,
   Check,
   ExternalLink,
+  Compass,
+  Loader2,
 } from 'lucide-react';
 
 export const DiscoveryPage: React.FC = () => {
@@ -33,6 +41,26 @@ export const DiscoveryPage: React.FC = () => {
   const [openNow, setOpenNow] = useState(searchParams.get('openNow') === 'true');
   const [sort, setSort] = useState(searchParams.get('sort') || 'rating');
   const [viewMode, setViewMode] = useState<'grid' | 'map'>('grid');
+
+  // Customer geolocation state for nearby discovery
+  const [userCoords, setUserCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locating, setLocating] = useState(false);
+
+  const handleLocateMe = async () => {
+    if (locating) return;
+    if (userCoords) {
+      setUserCoords(null);
+      if (sort === 'distance') setSort('rating');
+      return;
+    }
+    setLocating(true);
+    const coords = await getUserCurrentLocation(4500);
+    setLocating(false);
+    if (coords) {
+      setUserCoords(coords);
+      setSort('distance');
+    }
+  };
 
   // Keep state synchronized whenever URL search parameters change
   useEffect(() => {
@@ -108,6 +136,24 @@ export const DiscoveryPage: React.FC = () => {
     setSearchParams(nextParams);
   };
 
+  const displayedBusinesses = useMemo(() => {
+    const list = [...businesses];
+    if (sort === 'distance' && userCoords) {
+      list.sort((a, b) => {
+        const distA =
+          a.latitude && a.longitude
+            ? calculateDistanceKm(userCoords.latitude, userCoords.longitude, a.latitude, a.longitude)
+            : 999999;
+        const distB =
+          b.latitude && b.longitude
+            ? calculateDistanceKm(userCoords.latitude, userCoords.longitude, b.latitude, b.longitude)
+            : 999999;
+        return distA - distB;
+      });
+    }
+    return list;
+  }, [businesses, sort, userCoords]);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Top Search & Filter Bar */}
@@ -136,10 +182,28 @@ export const DiscoveryPage: React.FC = () => {
 
           {/* Quick Controls */}
           <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+            {/* Near Me Location Toggle */}
+            <button
+              onClick={handleLocateMe}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                userCoords
+                  ? 'bg-emerald-500 text-white border-emerald-500 font-bold'
+                  : 'bg-white dark:bg-neutral-900 border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400'
+              }`}
+              title={userCoords ? 'GPS Location Active (Click to reset)' : 'Find businesses near your current location'}
+            >
+              {locating ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Compass className="w-3.5 h-3.5 text-amber-500" />
+              )}
+              <span>{locating ? 'Locating...' : userCoords ? 'Near Me (Active)' : 'Near Me'}</span>
+            </button>
+
             {/* Open Now toggle */}
             <button
               onClick={() => setOpenNow(!openNow)}
-              className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+              className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-colors whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                 openNow
                   ? 'bg-amber-500 text-black border-amber-500 font-bold'
                   : 'bg-white dark:bg-neutral-900 border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300'
@@ -167,6 +231,7 @@ export const DiscoveryPage: React.FC = () => {
               className="px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-neutral-700 dark:text-neutral-300 focus:outline-hidden focus:ring-1 focus:ring-amber-500"
             >
               <option value="rating">Sort: Top Rated</option>
+              {userCoords && <option value="distance">Sort: Nearest to Me</option>}
               <option value="reviews">Sort: Most Reviews</option>
               <option value="name">Sort: Name (A-Z)</option>
             </select>
@@ -285,7 +350,7 @@ export const DiscoveryPage: React.FC = () => {
         /* Map View */
         <div className="space-y-4">
           <div className="rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800 shadow-md">
-            <MapViewer businesses={businesses} height="560px" />
+            <MapViewer businesses={displayedBusinesses} height="560px" />
           </div>
           <p className="text-xs text-neutral-500 text-center">
             Click any pin marker to view business hours and open its digital storefront.
@@ -294,7 +359,7 @@ export const DiscoveryPage: React.FC = () => {
       ) : (
         /* Grid View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {businesses.map(biz => (
+          {displayedBusinesses.map(biz => (
             <div
               key={biz._id}
               className="rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 overflow-hidden flex flex-col group hover:border-neutral-300 dark:hover:border-neutral-700 transition-all shadow-xs"
@@ -324,7 +389,15 @@ export const DiscoveryPage: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs text-neutral-500">
                     <span className="font-medium">{biz.category}</span>
-                    <RatingStars rating={biz.rating} reviewCount={biz.reviewCount} size="sm" />
+                    <div className="flex items-center gap-2">
+                      {userCoords && biz.latitude && biz.longitude && (
+                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                          <Navigation className="w-2.5 h-2.5" />
+                          {formatDistance(calculateDistanceKm(userCoords.latitude, userCoords.longitude, biz.latitude, biz.longitude))}
+                        </span>
+                      )}
+                      <RatingStars rating={biz.rating} reviewCount={biz.reviewCount} size="sm" />
+                    </div>
                   </div>
 
                   <h3 className="font-bold text-lg text-neutral-900 dark:text-white group-hover:text-amber-500 transition-colors">
@@ -343,14 +416,13 @@ export const DiscoveryPage: React.FC = () => {
                       <span className="truncate">{biz.address}, {biz.city}</span>
                     </div>
 
-                    <a
-                      href={`https://www.google.com/maps/dir/?api=1&destination=${biz.latitude},${biz.longitude}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 text-[11px] font-semibold"
+                    <button
+                      type="button"
+                      onClick={() => openDrivingDirections(biz)}
+                      className="text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 text-[11px] font-semibold cursor-pointer"
                     >
                       <Navigation className="w-3 h-3" /> Directions
-                    </a>
+                    </button>
                   </div>
 
                   <div className="flex items-center gap-2 pt-1">

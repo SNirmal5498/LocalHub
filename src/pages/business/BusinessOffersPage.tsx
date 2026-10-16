@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { api } from '../../services/api.js';
 import { Business, Offer } from '../../types/index.js';
 import { Tag, Plus, Edit2, Trash2, X, AlertCircle } from 'lucide-react';
+import { formatCurrency } from '../../utils/currency.js';
 
 export const BusinessOffersPage: React.FC = () => {
   const { business } = useOutletContext<{ business: Business }>();
@@ -176,9 +177,9 @@ export const BusinessOffersPage: React.FC = () => {
                 <span>
                   {off.discountType === 'percentage'
                     ? `${off.discountValue}% Discount`
-                    : `$${off.discountValue} Flat Off`}
+                    : `${formatCurrency(off.discountValue)} Flat Off`}
                 </span>
-                <span>Min Order ${off.minimumOrder || 0}</span>
+                <span>Min Order {formatCurrency(off.minimumOrder || 0)}</span>
               </div>
             </div>
           ))}
@@ -247,7 +248,7 @@ export const BusinessOffersPage: React.FC = () => {
                     className="w-full p-2.5 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                   >
                     <option value="percentage">Percentage (%)</option>
-                    <option value="fixed">Fixed Amount ($)</option>
+                    <option value="fixed">Fixed Amount (₹)</option>
                   </select>
                 </div>
 
@@ -270,7 +271,7 @@ export const BusinessOffersPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
-                    Minimum Order ($)
+                    Minimum Order (₹)
                   </label>
                   <input
                     type="number"
@@ -283,7 +284,7 @@ export const BusinessOffersPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
-                    Maximum Discount ($)
+                    Maximum Discount (₹)
                   </label>
                   <input
                     type="number"

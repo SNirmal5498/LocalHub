@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { api } from '../../services/api.js';
 import { Business } from '../../types/index.js';
-import { Store, MapPin, Phone, Mail, Clock, CheckCircle2, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { Store, MapPin, Phone, Mail, Clock, CheckCircle2, AlertCircle, Image as ImageIcon, Loader2 } from 'lucide-react';
+import { isValidCoordinate, isSanFranciscoPlaceholder } from '../../utils/location.js';
 
 export const BusinessProfilePage: React.FC = () => {
   const { business, setBusiness } = useOutletContext<{
@@ -17,11 +18,24 @@ export const BusinessProfilePage: React.FC = () => {
   const [phone, setPhone] = useState(business.phone || '');
   const [email, setEmail] = useState(business.email || '');
   const [address, setAddress] = useState(business.address || '');
-  const [city, setCity] = useState(business.city || 'San Francisco');
-  const [state, setState] = useState(business.state || 'California');
-  const [postalCode, setPostalCode] = useState(business.postalCode || '94103');
-  const [latitude, setLatitude] = useState(business.latitude || 37.7749);
-  const [longitude, setLongitude] = useState(business.longitude || -122.4194);
+  const [city, setCity] = useState(business.city || '');
+  const [state, setState] = useState(business.state || '');
+  const [postalCode, setPostalCode] = useState(business.postalCode || '');
+  const [country, setCountry] = useState(business.country || 'India');
+  const [latitude, setLatitude] = useState<number | null>(
+    isValidCoordinate(business.latitude, business.longitude) &&
+    !isSanFranciscoPlaceholder(business.latitude, business.longitude, business.city)
+      ? business.latitude!
+      : null
+  );
+  const [longitude, setLongitude] = useState<number | null>(
+    isValidCoordinate(business.latitude, business.longitude) &&
+    !isSanFranciscoPlaceholder(business.latitude, business.longitude, business.city)
+      ? business.longitude!
+      : null
+  );
+  const [geocodeStatus, setGeocodeStatus] = useState<string | null>(null);
+  const [isGeocoding, setIsGeocoding] = useState(false);
   const [isOpen, setIsOpen] = useState(business.isOpen !== false);
   const [logo, setLogo] = useState(business.logo || '');
   const [coverImage, setCoverImage] = useState(business.coverImage || '');
@@ -78,8 +92,9 @@ export const BusinessProfilePage: React.FC = () => {
       city,
       state,
       postalCode,
-      latitude: Number(latitude),
-      longitude: Number(longitude),
+      country,
+      latitude: latitude !== null ? latitude : undefined,
+      longitude: longitude !== null ? longitude : undefined,
       isOpen,
       logo,
       coverImage,
@@ -324,7 +339,10 @@ export const BusinessProfilePage: React.FC = () => {
               <input
                 type="text"
                 value={address}
-                onChange={e => setAddress(e.target.value)}
+                onChange={e => {
+                  setAddress(e.target.value);
+                  setGeocodeStatus(null);
+                }}
                 className="w-full p-2.5 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
               />
             </div>
@@ -336,7 +354,27 @@ export const BusinessProfilePage: React.FC = () => {
               <input
                 type="text"
                 value={city}
-                onChange={e => setCity(e.target.value)}
+                onChange={e => {
+                  setCity(e.target.value);
+                  setGeocodeStatus(null);
+                }}
+                placeholder="e.g. Coimbatore"
+                className="w-full p-2.5 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                State / Province
+              </label>
+              <input
+                type="text"
+                value={state}
+                onChange={e => {
+                  setState(e.target.value);
+                  setGeocodeStatus(null);
+                }}
+                placeholder="e.g. Tamil Nadu"
                 className="w-full p-2.5 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
               />
             </div>
@@ -348,10 +386,82 @@ export const BusinessProfilePage: React.FC = () => {
               <input
                 type="text"
                 value={postalCode}
-                onChange={e => setPostalCode(e.target.value)}
+                onChange={e => {
+                  setPostalCode(e.target.value);
+                  setGeocodeStatus(null);
+                }}
+                placeholder="e.g. 641 001"
                 className="w-full p-2.5 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
               />
             </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
+                Country
+              </label>
+              <input
+                type="text"
+                value={country}
+                onChange={e => {
+                  setCountry(e.target.value);
+                  setGeocodeStatus(null);
+                }}
+                placeholder="e.g. India"
+                className="w-full p-2.5 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+          </div>
+
+          {/* Location Verification Action */}
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              type="button"
+              onClick={async () => {
+                if (!city.trim()) {
+                  setGeocodeStatus('Please specify at least a city to locate.');
+                  return;
+                }
+                setIsGeocoding(true);
+                setGeocodeStatus(null);
+                try {
+                  const res = await api.geocodeLocation({
+                    address: address.trim(),
+                    city: city.trim(),
+                    state: state.trim(),
+                    postalCode: postalCode.trim(),
+                    country: country.trim() || 'India',
+                  });
+                  if (res.success && res.data) {
+                    setLatitude(res.data.latitude);
+                    setLongitude(res.data.longitude);
+                    setGeocodeStatus(`✓ Verified on Map: [${res.data.latitude}, ${res.data.longitude}]`);
+                  } else {
+                    setGeocodeStatus('Location will resolve automatically when saving.');
+                  }
+                } catch {
+                  setGeocodeStatus('Coordinates will be resolved automatically on save.');
+                } finally {
+                  setIsGeocoding(false);
+                }
+              }}
+              className="px-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 text-xs font-semibold text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              {isGeocoding ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-500" />
+              ) : (
+                <MapPin className="w-3.5 h-3.5 text-amber-500" />
+              )}
+              <span>{isGeocoding ? 'Locating...' : 'Update Map Coordinates'}</span>
+            </button>
+            {geocodeStatus ? (
+              <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+                {geocodeStatus}
+              </span>
+            ) : latitude && longitude ? (
+              <span className="text-[11px] text-neutral-500">
+                Current Pin: [{latitude.toFixed(4)}, {longitude.toFixed(4)}]
+              </span>
+            ) : null}
           </div>
         </div>
 

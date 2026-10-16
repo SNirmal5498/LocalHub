@@ -67,9 +67,9 @@ export const ContactPage: React.FC = () => {
                   <MapPin className="w-4 h-4" />
                 </div>
                 <div>
-                  <span className="font-semibold text-neutral-900 dark:text-white block">Headquarters</span>
-                  <p>500 Howard Street, Suite 400</p>
-                  <p>San Francisco, CA 94105</p>
+                  <span className="font-semibold text-neutral-900 dark:text-white block">Platform Network</span>
+                  <p>LocalHub Merchant Hub</p>
+                  <p>Serving neighbourhood businesses worldwide</p>
                 </div>
               </div>
             </div>

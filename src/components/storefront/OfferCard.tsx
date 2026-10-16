@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Offer } from '../../types/index.js';
 import { Tag, Copy, Check, Clock } from 'lucide-react';
 import { useCart } from '../../context/CartContext.js';
+import { formatCurrency } from '../../utils/currency.js';
 
 interface OfferCardProps {
   offer: Offer;
@@ -32,7 +33,7 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
             <Tag className="w-3.5 h-3.5" />
             {offer.discountType === 'percentage'
               ? `${offer.discountValue}% Off`
-              : `$${offer.discountValue} Flat Discount`}
+              : `${formatCurrency(offer.discountValue)} Flat Discount`}
           </span>
 
           {offer.couponCode && (
@@ -65,7 +66,7 @@ export const OfferCard: React.FC<OfferCardProps> = ({ offer }) => {
       <div className="pt-3 mt-3 border-t border-amber-200/60 dark:border-amber-900/40 flex items-center justify-between text-[11px] text-neutral-500">
         <div>
           {offer.minimumOrder ? (
-            <span>Min. Order ${offer.minimumOrder.toFixed(2)}</span>
+            <span>Min. Order {formatCurrency(offer.minimumOrder)}</span>
           ) : (
             <span>No minimum order</span>
           )}

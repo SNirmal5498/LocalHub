@@ -12,6 +12,8 @@ import { OfferCard } from '../components/storefront/OfferCard.js';
 import { ReviewItem } from '../components/storefront/ReviewItem.js';
 import { WriteReviewModal } from '../components/storefront/WriteReviewModal.js';
 import { ContactBusinessModal } from '../components/storefront/ContactBusinessModal.js';
+import { formatCurrency } from '../utils/currency.js';
+import { openDrivingDirections } from '../utils/location.js';
 import {
   MapPin,
   Phone,
@@ -115,7 +117,7 @@ export const StorefrontPage: React.FC = () => {
 
   const handleEnquireService = (service: Service) => {
     setPrefillMessage(
-      `Hello! I would like to enquire about scheduling the "${service.name}" service ($${service.price.toFixed(2)}, approx. ${service.duration}). Could you let me know available appointment times?`
+      `Hello! I would like to enquire about scheduling the "${service.name}" service (${formatCurrency(service.price)}, approx. ${service.duration}). Could you let me know available appointment times?`
     );
     setIsContactOpen(true);
   };
@@ -254,14 +256,13 @@ export const StorefrontPage: React.FC = () => {
                 <Phone className="w-3.5 h-3.5 text-amber-500" /> Call
               </a>
 
-              <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`}
-                target="_blank"
-                rel="noreferrer"
-                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5 transition-colors"
+              <button
+                type="button"
+                onClick={() => openDrivingDirections(business)}
+                className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-800 dark:text-neutral-200 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <Navigation className="w-3.5 h-3.5 text-amber-500" /> Directions
-              </a>
+              </button>
 
               <button
                 onClick={() => {
@@ -414,21 +415,20 @@ export const StorefrontPage: React.FC = () => {
                   <MapPin className="w-4 h-4 text-amber-500" /> Store Location
                 </h3>
                 <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                  {business.address}, {business.city}, {business.state} {business.postalCode}
+                  {business.address}, {business.city}{business.state ? `, ${business.state}` : ''} {business.postalCode || ''}{business.country ? `, ${business.country}` : ''}
                 </p>
 
                 <div className="rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800">
                   <MapViewer singleBusiness={business} height="220px" zoom={15} />
                 </div>
 
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${business.latitude},${business.longitude}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-semibold text-xs flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
+                <button
+                  type="button"
+                  onClick={() => openDrivingDirections(business)}
+                  className="w-full py-2.5 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 font-semibold text-xs flex items-center justify-center gap-2 hover:opacity-90 transition-opacity cursor-pointer"
                 >
                   <Navigation className="w-3.5 h-3.5" /> Open Driving Directions
-                </a>
+                </button>
               </div>
             </div>
           </div>

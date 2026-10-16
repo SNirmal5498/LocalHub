@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api.js';
-import { Shield, Store, Users, ShoppingBag, DollarSign, Star, AlertTriangle } from 'lucide-react';
+import { Shield, Store, Users, ShoppingBag, IndianRupee, Star, AlertTriangle } from 'lucide-react';
+import { formatCurrency } from '../../utils/currency.js';
 import {
   BarChart,
   Bar,
@@ -67,10 +68,10 @@ export const AdminDashboardPage: React.FC = () => {
         <div className="p-5 rounded-2xl bg-white dark:bg-neutral-900 border border-neutral-200/80 dark:border-neutral-800 space-y-1">
           <div className="flex items-center justify-between text-neutral-500">
             <span className="text-xs font-semibold">Gross Platform GMV</span>
-            <DollarSign className="w-4 h-4 text-emerald-500" />
+            <IndianRupee className="w-4 h-4 text-emerald-500" />
           </div>
           <div className="text-2xl font-black text-neutral-900 dark:text-white tabular-nums">
-            ${s.totalGmv.toFixed(2)}
+            {formatCurrency(s.totalGmv)}
           </div>
           <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
             Across all stores

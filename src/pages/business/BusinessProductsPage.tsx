@@ -4,6 +4,7 @@ import { api } from '../../services/api.js';
 import { Business, Product } from '../../types/index.js';
 import { ImageWithFallback } from '../../components/common/ImageWithFallback.js';
 import { Plus, Edit2, Trash2, Check, X, AlertCircle, Package, Image as ImageIcon } from 'lucide-react';
+import { formatCurrency } from '../../utils/currency.js';
 
 export const BusinessProductsPage: React.FC = () => {
   const { business } = useOutletContext<{ business: Business }>();
@@ -225,13 +226,13 @@ export const BusinessProductsPage: React.FC = () => {
                     </td>
 
                     <td className="py-3 px-4 font-bold text-neutral-900 dark:text-white tabular-nums">
-                      ${prod.price.toFixed(2)}
+                      {formatCurrency(prod.price)}
                     </td>
 
                     <td className="py-3 px-4 tabular-nums">
                       {prod.discountPrice ? (
                         <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                          ${prod.discountPrice.toFixed(2)}
+                          {formatCurrency(prod.discountPrice)}
                         </span>
                       ) : (
                         <span className="text-neutral-400">—</span>
@@ -332,7 +333,7 @@ export const BusinessProductsPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
-                    Regular Price ($)
+                    Regular Price (₹)
                   </label>
                   <input
                     type="number"
@@ -347,7 +348,7 @@ export const BusinessProductsPage: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
-                    Discount Price ($ optional)
+                    Discount Price (₹ optional)
                   </label>
                   <input
                     type="number"

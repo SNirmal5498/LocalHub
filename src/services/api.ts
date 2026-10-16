@@ -63,6 +63,13 @@ export const api = {
   createBusiness: (body: any) => apiRequest('/businesses', { method: 'POST', body: JSON.stringify(body) }),
   updateBusiness: (id: string, body: any) => apiRequest(`/businesses/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   deleteBusiness: (id: string) => apiRequest(`/businesses/${id}`, { method: 'DELETE' }),
+  geocodeLocation: (params: { address?: string; city?: string; state?: string; postalCode?: string; country?: string }) => {
+    const qs = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => {
+      if (v) qs.append(k, v);
+    });
+    return apiRequest(`/businesses/geocode?${qs.toString()}`);
+  },
 
   // Products
   getProductsByBusiness: (businessId: string) => apiRequest(`/products/business/${businessId}`),

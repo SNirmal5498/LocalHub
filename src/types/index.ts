@@ -44,8 +44,9 @@ export interface Business {
   city: string;
   state: string;
   postalCode: string;
-  latitude: number;
-  longitude: number;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
   openingHours: OpeningHours;
   isOpen: boolean;
   status: 'active' | 'suspended' | 'pending';

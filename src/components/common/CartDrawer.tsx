@@ -3,6 +3,7 @@ import { useCart } from '../../context/CartContext.js';
 import { X, Plus, Minus, Trash2, ShoppingBag, ArrowRight, Tag, Check, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ImageWithFallback } from './ImageWithFallback.js';
+import { formatCurrency } from '../../utils/currency.js';
 
 export const CartDrawer: React.FC = () => {
   const {
@@ -131,11 +132,11 @@ export const CartDrawer: React.FC = () => {
                       </h4>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs font-bold text-neutral-900 dark:text-neutral-100 tabular-nums">
-                          ${price.toFixed(2)}
+                          {formatCurrency(price)}
                         </span>
                         {product.discountPrice !== null && product.discountPrice !== undefined && (
                           <span className="text-xs text-neutral-400 line-through tabular-nums">
-                            ${product.price.toFixed(2)}
+                            {formatCurrency(product.price)}
                           </span>
                         )}
                       </div>
@@ -203,7 +204,7 @@ export const CartDrawer: React.FC = () => {
                 {couponCode && (
                   <div className="flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400">
                     <span className="flex items-center gap-1">
-                      <Check className="w-3.5 h-3.5" /> Applied {couponCode} (-${discount.toFixed(2)})
+                      <Check className="w-3.5 h-3.5" /> Applied {couponCode} (-{formatCurrency(discount)})
                     </span>
                     <button
                       type="button"
@@ -227,13 +228,13 @@ export const CartDrawer: React.FC = () => {
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span className="tabular-nums font-medium text-neutral-900 dark:text-neutral-100">
-                    ${subtotal.toFixed(2)}
+                    {formatCurrency(subtotal)}
                   </span>
                 </div>
                 {discount > 0 && (
                   <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                     <span>Discount</span>
-                    <span className="tabular-nums font-medium">-${discount.toFixed(2)}</span>
+                    <span className="tabular-nums font-medium">-{formatCurrency(discount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
@@ -242,7 +243,7 @@ export const CartDrawer: React.FC = () => {
                 </div>
                 <div className="flex justify-between text-sm font-bold text-neutral-900 dark:text-neutral-100 pt-2 border-t border-neutral-200 dark:border-neutral-800">
                   <span>Estimated Total</span>
-                  <span className="tabular-nums text-base">${total.toFixed(2)}</span>
+                  <span className="tabular-nums text-base">{formatCurrency(total)}</span>
                 </div>
               </div>
 

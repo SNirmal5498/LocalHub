@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { api } from '../../services/api.js';
 import { Business, Service } from '../../types/index.js';
 import { Wrench, Plus, Edit2, Trash2, Clock, X, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { formatCurrency } from '../../utils/currency.js';
 
 export const BusinessServicesPage: React.FC = () => {
   const { business } = useOutletContext<{ business: Business }>();
@@ -207,7 +208,7 @@ export const BusinessServicesPage: React.FC = () => {
                 </div>
 
                 <span className="text-base font-bold text-neutral-900 dark:text-white tabular-nums">
-                  ${serv.price.toFixed(2)}
+                  {formatCurrency(serv.price)}
                 </span>
               </div>
             </div>
@@ -268,7 +269,7 @@ export const BusinessServicesPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1">
-                    Price ($)
+                    Price (₹)
                   </label>
                   <input
                     type="number"

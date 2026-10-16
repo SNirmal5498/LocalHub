@@ -3,6 +3,7 @@ import { useOutletContext } from 'react-router-dom';
 import { api } from '../../services/api.js';
 import { Business, Order } from '../../types/index.js';
 import { ShoppingBag, Phone, MapPin, CheckCircle2, Clock, Truck, Store, X } from 'lucide-react';
+import { formatCurrency } from '../../utils/currency.js';
 
 export const BusinessOrdersPage: React.FC = () => {
   const { business } = useOutletContext<{ business: Business }>();
@@ -136,7 +137,7 @@ export const BusinessOrdersPage: React.FC = () => {
                           <span className="font-bold text-neutral-900 dark:text-white">{i.quantity}x</span> {i.name}
                         </span>
                         <span className="font-mono tabular-nums">
-                          ${(i.price * i.quantity).toFixed(2)}
+                          {formatCurrency(i.price * i.quantity)}
                         </span>
                       </li>
                     ))}
@@ -172,7 +173,7 @@ export const BusinessOrdersPage: React.FC = () => {
 
                   <div className="pt-2 flex justify-between font-bold text-sm text-neutral-900 dark:text-white">
                     <span>Total Amount:</span>
-                    <span className="tabular-nums">${order.totalAmount.toFixed(2)}</span>
+                    <span className="tabular-nums">{formatCurrency(order.totalAmount)}</span>
                   </div>
                 </div>
               </div>

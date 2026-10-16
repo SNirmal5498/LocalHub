@@ -125,7 +125,7 @@ export const BusinessSettingsPage: React.FC = () => {
 
           <div className="pt-4 border-t border-neutral-100 dark:border-neutral-800">
             <label className="block text-xs font-semibold text-neutral-700 dark:text-neutral-300 mb-1.5">
-              Minimum Order Subtotal ($)
+              Minimum Order Subtotal (₹)
             </label>
             <input
               type="number"

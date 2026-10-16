@@ -118,7 +118,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <span className="flex items-center gap-1.5 text-neutral-500">
-                  <MapPin className="w-3.5 h-3.5 text-amber-500" /> San Francisco, CA
+                  <MapPin className="w-3.5 h-3.5 text-amber-500" /> Global Commerce Network
                 </span>
               </li>
               <li>

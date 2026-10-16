@@ -17,8 +17,9 @@ export interface IBusiness {
   city: string;
   state: string;
   postalCode: string;
-  latitude: number;
-  longitude: number;
+  country?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   openingHours: {
     monday: { open: string; close: string; isClosed: boolean };
     tuesday: { open: string; close: string; isClosed: boolean };
@@ -55,11 +56,12 @@ const BusinessSchema = new Schema<IBusiness>({
   email: { type: String, default: '' },
   website: { type: String, default: '' },
   address: { type: String, required: true },
-  city: { type: String, default: 'San Francisco' },
-  state: { type: String, default: 'California' },
-  postalCode: { type: String, default: '94103' },
-  latitude: { type: Number, default: 37.7749 },
-  longitude: { type: Number, default: -122.4194 },
+  city: { type: String, required: true },
+  state: { type: String, default: '' },
+  postalCode: { type: String, default: '' },
+  country: { type: String, default: 'India' },
+  latitude: { type: Number, default: null },
+  longitude: { type: Number, default: null },
   openingHours: {
     monday: { type: Object, default: defaultDay },
     tuesday: { type: Object, default: defaultDay },

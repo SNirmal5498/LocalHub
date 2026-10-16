@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { Business, Product, Service, Review, calculateIsOpenNow } from '../db/db.js';
 import { authenticateToken, AuthRequest, requireRole, optionalAuth } from '../middleware/auth.js';
+import { geocodeAddress, isSanFranciscoPlaceholder, isValidCoordinate } from '../utils/geocoder.js';
 
 const router = Router();
 
@@ -125,6 +126,26 @@ router.get('/', optionalAuth, async (req: AuthRequest, res: Response) => {
   }
 });
 
+// Geocode an address/city on the fly
+router.get('/geocode', async (req, res) => {
+  try {
+    const { address, city, state, postalCode, country } = req.query;
+    const result = await geocodeAddress({
+      address: address ? String(address) : undefined,
+      city: city ? String(city) : undefined,
+      state: state ? String(state) : undefined,
+      postalCode: postalCode ? String(postalCode) : undefined,
+      country: country ? String(country) : undefined,
+    });
+    if (result) {
+      return res.json({ success: true, data: result });
+    }
+    return res.status(404).json({ success: false, message: 'Could not resolve coordinates for this location.' });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 // Get business owned by current logged in owner
 router.get('/owner/my-business', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
@@ -191,6 +212,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       city,
       state,
       postalCode,
+      country,
       latitude,
       longitude,
       openingHours,
@@ -199,10 +221,10 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       minOrderAmount,
     } = req.body;
 
-    if (!name || !category || !phone || !address) {
+    if (!name || !category || !phone || !address || !city) {
       return res.status(400).json({
         success: false,
-        message: 'Business name, category, phone, and address are required.',
+        message: 'Business name, category, phone, street address, and city are required.',
       });
     }
 
@@ -225,6 +247,38 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       sunday: { open: '10:00', close: '16:00', isClosed: false },
     };
 
+    const cleanCity = city.trim();
+    const cleanState = state?.trim() || '';
+    const cleanPostal = postalCode?.trim() || '';
+    const cleanCountry = country?.trim() || 'India';
+
+    let finalLat: number | null = null;
+    let finalLng: number | null = null;
+
+    const parsedLat = latitude !== undefined && latitude !== null && latitude !== '' ? Number(latitude) : null;
+    const parsedLng = longitude !== undefined && longitude !== null && longitude !== '' ? Number(longitude) : null;
+
+    if (
+      isValidCoordinate(parsedLat, parsedLng) &&
+      !isSanFranciscoPlaceholder(parsedLat, parsedLng, cleanCity)
+    ) {
+      finalLat = parsedLat;
+      finalLng = parsedLng;
+    } else {
+      // Auto-geocode actual address
+      const geocoded = await geocodeAddress({
+        address: address.trim(),
+        city: cleanCity,
+        state: cleanState,
+        postalCode: cleanPostal,
+        country: cleanCountry,
+      });
+      if (geocoded && isValidCoordinate(geocoded.latitude, geocoded.longitude)) {
+        finalLat = geocoded.latitude;
+        finalLng = geocoded.longitude;
+      }
+    }
+
     const newBusiness = await Business.create({
       owner: req.user!._id,
       name: name.trim(),
@@ -235,11 +289,12 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       phone: phone.trim(),
       email: email?.trim() || req.user!.email,
       address: address.trim(),
-      city: city?.trim() || 'San Francisco',
-      state: state?.trim() || 'California',
-      postalCode: postalCode?.trim() || '94103',
-      latitude: Number(latitude) || 37.7749,
-      longitude: Number(longitude) || -122.4194,
+      city: cleanCity,
+      state: cleanState,
+      postalCode: cleanPostal,
+      country: cleanCountry,
+      latitude: finalLat,
+      longitude: finalLng,
       openingHours: openingHours || defaultHours,
       status: 'pending',
       rating: 0,
@@ -278,7 +333,45 @@ router.put('/:id', authenticateToken, requireRole('owner', 'admin'), async (req:
       return res.status(403).json({ success: false, message: 'Forbidden. You do not own this business.' });
     }
 
-    const updated = await Business.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updates = { ...req.body };
+
+    const effectiveAddress = (updates.address !== undefined ? updates.address : business.address) || '';
+    const effectiveCity = (updates.city !== undefined ? updates.city : business.city) || '';
+    const effectiveState = (updates.state !== undefined ? updates.state : business.state) || '';
+    const effectivePostal = (updates.postalCode !== undefined ? updates.postalCode : business.postalCode) || '';
+    const effectiveCountry = (updates.country !== undefined ? updates.country : business.country) || 'India';
+
+    const parsedLat = updates.latitude !== undefined && updates.latitude !== null && updates.latitude !== '' ? Number(updates.latitude) : null;
+    const parsedLng = updates.longitude !== undefined && updates.longitude !== null && updates.longitude !== '' ? Number(updates.longitude) : null;
+
+    const hasValidExplicitCoords = isValidCoordinate(parsedLat, parsedLng) && !isSanFranciscoPlaceholder(parsedLat, parsedLng, effectiveCity);
+    const addressChanged = (updates.address && updates.address !== business.address) || (updates.city && updates.city !== business.city);
+
+    if (hasValidExplicitCoords) {
+      updates.latitude = parsedLat;
+      updates.longitude = parsedLng;
+    } else if (
+      !isValidCoordinate(business.latitude, business.longitude) ||
+      isSanFranciscoPlaceholder(business.latitude, business.longitude, effectiveCity) ||
+      addressChanged
+    ) {
+      const geocoded = await geocodeAddress({
+        address: effectiveAddress,
+        city: effectiveCity,
+        state: effectiveState,
+        postalCode: effectivePostal,
+        country: effectiveCountry,
+      });
+      if (geocoded && isValidCoordinate(geocoded.latitude, geocoded.longitude)) {
+        updates.latitude = geocoded.latitude;
+        updates.longitude = geocoded.longitude;
+      } else if (!hasValidExplicitCoords) {
+        updates.latitude = null;
+        updates.longitude = null;
+      }
+    }
+
+    const updated = await Business.findByIdAndUpdate(req.params.id, updates, { new: true });
     return res.json({
       success: true,
       message: 'Business profile updated successfully.',

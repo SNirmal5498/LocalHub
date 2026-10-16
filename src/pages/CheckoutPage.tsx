@@ -18,6 +18,7 @@ import {
   AlertCircle,
   Tag,
 } from 'lucide-react';
+import { formatCurrency } from '../utils/currency.js';
 
 export const CheckoutPage: React.FC = () => {
   const { items, businessId, businessName, subtotal, discount, couponCode, total, clearCart } = useCart();
@@ -26,11 +27,11 @@ export const CheckoutPage: React.FC = () => {
 
   const [deliveryType, setDeliveryType] = useState<'delivery' | 'pickup'>('pickup');
   const [customerName, setCustomerName] = useState(user?.name || '');
-  const [phone, setPhone] = useState(user?.phone || '+1 (415) 555-0165');
-  const [street, setStreet] = useState('742 Evergreen Terrace, Apt 4B');
-  const [city, setCity] = useState('San Francisco');
-  const [state, setState] = useState('CA');
-  const [postalCode, setPostalCode] = useState('94110');
+  const [phone, setPhone] = useState(user?.phone || '');
+  const [street, setStreet] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [postalCode, setPostalCode] = useState('');
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'cod' | 'pay_at_store'>('pay_at_store');
 
@@ -212,7 +213,7 @@ export const CheckoutPage: React.FC = () => {
                     required
                     value={street}
                     onChange={e => setStreet(e.target.value)}
-                    placeholder="e.g. 742 Evergreen Terrace, Apt 4B"
+                    placeholder="Street address, building, suite..."
                     className="w-full p-2.5 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
@@ -227,6 +228,7 @@ export const CheckoutPage: React.FC = () => {
                       required
                       value={city}
                       onChange={e => setCity(e.target.value)}
+                      placeholder="e.g. Coimbatore"
                       className="w-full p-2.5 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                     />
                   </div>
@@ -240,6 +242,7 @@ export const CheckoutPage: React.FC = () => {
                       required
                       value={state}
                       onChange={e => setState(e.target.value)}
+                      placeholder="e.g. Tamil Nadu"
                       className="w-full p-2.5 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                     />
                   </div>
@@ -253,6 +256,7 @@ export const CheckoutPage: React.FC = () => {
                       required
                       value={postalCode}
                       onChange={e => setPostalCode(e.target.value)}
+                      placeholder="e.g. 641 001"
                       className="w-full p-2.5 text-xs rounded-xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-hidden focus:ring-2 focus:ring-amber-500"
                     />
                   </div>
@@ -385,12 +389,12 @@ export const CheckoutPage: React.FC = () => {
                           {product.name}
                         </h4>
                         <p className="text-[11px] text-neutral-400">
-                          Qty: {quantity} × ${price.toFixed(2)}
+                          Qty: {quantity} × {formatCurrency(price)}
                         </p>
                       </div>
                     </div>
                     <span className="text-xs font-bold text-neutral-900 dark:text-white tabular-nums shrink-0">
-                      ${(price * quantity).toFixed(2)}
+                      {formatCurrency(price * quantity)}
                     </span>
                   </div>
                 );
@@ -402,7 +406,7 @@ export const CheckoutPage: React.FC = () => {
               <div className="flex justify-between">
                 <span>Subtotal</span>
                 <span className="font-medium text-neutral-900 dark:text-neutral-100 tabular-nums">
-                  ${subtotal.toFixed(2)}
+                  {formatCurrency(subtotal)}
                 </span>
               </div>
 
@@ -411,7 +415,7 @@ export const CheckoutPage: React.FC = () => {
                   <span className="flex items-center gap-1">
                     <Tag className="w-3.5 h-3.5" /> Coupon ({couponCode})
                   </span>
-                  <span className="font-medium tabular-nums">-${discount.toFixed(2)}</span>
+                  <span className="font-medium tabular-nums">-{formatCurrency(discount)}</span>
                 </div>
               )}
 
@@ -422,7 +426,7 @@ export const CheckoutPage: React.FC = () => {
 
               <div className="flex justify-between text-base font-bold text-neutral-900 dark:text-white pt-3 border-t border-neutral-100 dark:border-neutral-800">
                 <span>Total Due</span>
-                <span className="tabular-nums">${total.toFixed(2)}</span>
+                <span className="tabular-nums">{formatCurrency(total)}</span>
               </div>
             </div>
 
