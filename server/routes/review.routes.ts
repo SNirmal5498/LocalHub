@@ -6,7 +6,7 @@ const router = Router();
 
 // Recalculate business average rating and review count
 async function updateBusinessRating(businessId: string) {
-  const reviews = await Review.find({ business: businessId });
+  const reviews = await Review.find({ business: businessId, status: { $ne: 'hidden' } });
   const reviewCount = reviews.length;
   let rating = 0;
 
@@ -21,7 +21,10 @@ async function updateBusinessRating(businessId: string) {
 // Get reviews for a business
 router.get('/business/:businessId', async (req, res) => {
   try {
-    const reviews = await Review.find({ business: req.params.businessId }).sort({ createdAt: -1 });
+    const reviews = await Review.find({
+      business: req.params.businessId,
+      status: { $ne: 'hidden' },
+    }).sort({ createdAt: -1 });
     return res.json({
       success: true,
       data: reviews,

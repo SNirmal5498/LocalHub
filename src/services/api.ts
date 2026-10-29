@@ -129,25 +129,71 @@ export const api = {
 
   // Messages
   sendMessage: (body: any) => apiRequest('/messages', { method: 'POST', body: JSON.stringify(body) }),
+  sendSupportMessage: (body: any) => apiRequest('/messages/support', { method: 'POST', body: JSON.stringify(body) }),
   getBusinessMessages: (businessId: string) => apiRequest(`/messages/business/${businessId}`),
   markMessageRead: (id: string) => apiRequest(`/messages/${id}/read`, { method: 'PUT' }),
 
   // Categories
-  getCategories: () => apiRequest('/categories'),
+  getCategories: (includeAll?: boolean) => apiRequest(includeAll ? '/categories?all=true' : '/categories'),
   createCategory: (body: any) => apiRequest('/categories', { method: 'POST', body: JSON.stringify(body) }),
+  updateCategory: (id: string, body: any) => apiRequest(`/categories/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  toggleCategory: (id: string) => apiRequest(`/categories/${id}/toggle`, { method: 'PATCH' }),
+  deleteCategory: (id: string) => apiRequest(`/categories/${id}`, { method: 'DELETE' }),
 
   // Media Upload
   uploadImage: (image: string, folder?: string) =>
     apiRequest('/upload', { method: 'POST', body: JSON.stringify({ image, folder }) }),
 
   // Admin
-  getAdminAnalytics: () => apiRequest('/admin/analytics'),
-  getAdminUsers: () => apiRequest('/admin/users'),
-  deleteAdminUser: (id: string) => apiRequest(`/admin/users/${id}`, { method: 'DELETE' }),
-  getAdminBusinesses: () => apiRequest('/admin/businesses'),
-  updateBusinessStatus: (id: string, status: string) =>
-    apiRequest(`/admin/businesses/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) }),
-  getAdminOrders: () => apiRequest('/admin/orders'),
-  getAdminReviews: () => apiRequest('/admin/reviews'),
-  deleteAdminReview: (id: string) => apiRequest(`/admin/reviews/${id}`, { method: 'DELETE' }),
+  getAdminAnalytics: (range?: string) =>
+    apiRequest(`/admin/analytics${range ? `?range=${encodeURIComponent(range)}` : ''}`),
+  getAdminUsers: (params?: { q?: string; role?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.q) query.set('q', params.q);
+    if (params?.role) query.set('role', params.role);
+    const qs = query.toString();
+    return apiRequest(`/admin/users${qs ? `?${qs}` : ''}`);
+  },
+  createAdminUser: (body: any) =>
+    apiRequest('/admin/users', { method: 'POST', body: JSON.stringify(body) }),
+  updateAdminUser: (id: string, body: any) =>
+    apiRequest(`/admin/users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteAdminUser: (id: string) =>
+    apiRequest(`/admin/users/${id}`, { method: 'DELETE' }),
+  getAdminBusinesses: (params?: { q?: string; category?: string; status?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.q) query.set('q', params.q);
+    if (params?.category) query.set('category', params.category);
+    if (params?.status) query.set('status', params.status);
+    const qs = query.toString();
+    return apiRequest(`/admin/businesses${qs ? `?${qs}` : ''}`);
+  },
+  updateBusinessStatus: (id: string, status: string, reason?: string) =>
+    apiRequest(`/admin/businesses/${id}/status`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, reason }),
+    }),
+  getAdminOrders: (params?: { q?: string; status?: string; range?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.q) query.set('q', params.q);
+    if (params?.status) query.set('status', params.status);
+    if (params?.range) query.set('range', params.range);
+    const qs = query.toString();
+    return apiRequest(`/admin/orders${qs ? `?${qs}` : ''}`);
+  },
+  getAdminReviews: (params?: { q?: string; status?: string; rating?: number | string }) => {
+    const query = new URLSearchParams();
+    if (params?.q) query.set('q', params.q);
+    if (params?.status) query.set('status', params.status);
+    if (params?.rating !== undefined) query.set('rating', String(params.rating));
+    const qs = query.toString();
+    return apiRequest(`/admin/reviews${qs ? `?${qs}` : ''}`);
+  },
+  moderateAdminReview: (id: string, status: string, reason?: string) =>
+    apiRequest(`/admin/reviews/${id}/moderate`, {
+      method: 'PUT',
+      body: JSON.stringify({ status, reason }),
+    }),
+  deleteAdminReview: (id: string) =>
+    apiRequest(`/admin/reviews/${id}`, { method: 'DELETE' }),
 };

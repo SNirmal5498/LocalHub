@@ -12,6 +12,10 @@ export interface IReview {
     text: string;
     respondedAt?: string;
   } | null;
+  status: 'published' | 'hidden' | 'flagged';
+  moderationReason?: string;
+  moderatedBy?: string;
+  moderatedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,6 +32,10 @@ const ReviewSchema = new Schema<IReview>({
     type: Schema.Types.Mixed,
     default: null,
   },
+  status: { type: String, enum: ['published', 'hidden', 'flagged'], default: 'published', index: true },
+  moderationReason: { type: String, default: '' },
+  moderatedBy: { type: String, default: '' },
+  moderatedAt: { type: Date, default: null },
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

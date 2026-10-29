@@ -137,9 +137,9 @@ export const Footer: React.FC = () => {
             <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Platform Active
             </span>
-            <span>Privacy</span>
-            <span>Terms</span>
-            <span>Security</span>
+            <Link to="/about" className="hover:text-amber-500 transition-colors">Privacy</Link>
+            <Link to="/about" className="hover:text-amber-500 transition-colors">Terms</Link>
+            <Link to="/contact" className="hover:text-amber-500 transition-colors">Security</Link>
           </div>
         </div>
       </div>

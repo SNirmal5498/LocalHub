@@ -49,19 +49,28 @@ export interface Business {
   longitude?: number;
   openingHours: OpeningHours;
   isOpen: boolean;
-  status: 'active' | 'suspended' | 'pending';
+  status: 'active' | 'suspended' | 'pending' | 'rejected';
+  statusReason?: string;
+  statusAudit?: Array<{
+    status: string;
+    reason?: string;
+    changedBy: string;
+    changedAt: string;
+  }>;
   rating: number;
   reviewCount: number;
   deliveryAvailable?: boolean;
   pickupAvailable?: boolean;
   minOrderAmount?: number;
+  orderCount?: number;
+  totalRevenue?: number;
   createdAt: string;
   updatedAt: string;
   ownerDetails?: {
     name: string;
     email: string;
     phone?: string;
-  };
+  } | null;
 }
 
 export interface Product {
@@ -163,10 +172,15 @@ export interface Review {
   customer: string;
   customerName: string;
   business: string;
+  businessName?: string;
   order?: string | null;
   rating: number;
   comment: string;
   ownerResponse?: string | null;
+  status?: 'published' | 'hidden' | 'flagged';
+  moderationReason?: string;
+  moderatedBy?: string;
+  moderatedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

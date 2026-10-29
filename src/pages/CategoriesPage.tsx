@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../services/api.js';
+import { useAuth } from '../context/AuthContext.js';
 import { Category } from '../types/index.js';
 import {
   Store,
@@ -12,13 +13,12 @@ import {
   ArrowRight,
   Search,
   Layers,
-  ChevronRight,
-  PlusCircle,
   Tag,
   Hammer,
-  Scissors,
-  Coffee,
   CheckCircle2,
+  X,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 
 const CATEGORY_TAGS: Record<string, string[]> = {
@@ -70,24 +70,41 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string; border: string
 };
 
 export const CategoriesPage: React.FC = () => {
+  const { user } = useAuth();
+  const isOwner = user?.role === 'owner' || user?.role === 'business_owner';
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    async function loadCategories() {
-      try {
-        setLoading(true);
-        const res = await api.getCategories();
-        if (res.success && res.data) {
-          setCategories(res.data);
-        }
-      } catch (err) {
-        console.error('Failed to load categories', err);
-      } finally {
-        setLoading(false);
+  const loadCategories = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await api.getCategories();
+      if (res.success && res.data && res.data.length > 0) {
+        setCategories(res.data);
+      } else {
+        // Fallback baseline taxonomy if database is seeding
+        setCategories([
+          { _id: 'cat-1', name: 'Food & Bakery', slug: 'food-bakery', icon: 'Cake', description: 'Artisanal bakeries, local cafes, and specialty delicacies', isActive: true, businessCount: 0 },
+          { _id: 'cat-2', name: 'Tech & Repairs', slug: 'tech-repairs', icon: 'Wrench', description: 'Mobile phone repairs, computer service, and electronics', isActive: true, businessCount: 0 },
+          { _id: 'cat-3', name: 'Apparel & Boutique', slug: 'apparel-boutique', icon: 'Shirt', description: 'Independent clothing, bespoke tailors, and jewelry makers', isActive: true, businessCount: 0 },
+          { _id: 'cat-4', name: 'Beauty & Wellness', slug: 'beauty-wellness', icon: 'Sparkles', description: 'Neighbourhood salons, barber shops, and wellness specialists', isActive: true, businessCount: 0 },
+          { _id: 'cat-5', name: 'Home & Crafts', slug: 'home-crafts', icon: 'Store', description: 'Handcrafted furniture, pottery, florists, and home essentials', isActive: true, businessCount: 0 },
+          { _id: 'cat-6', name: 'Grocery & Artisanal', slug: 'grocery-artisanal', icon: 'Store', description: 'Fresh farm produce, organic pantries, and local spices', isActive: true, businessCount: 0 },
+        ]);
       }
+    } catch (err: any) {
+      console.error('Failed to load categories', err);
+      setError(err.message || 'Unable to load categories. Please check your connection.');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
     loadCategories();
   }, []);
 
@@ -115,13 +132,24 @@ export const CategoriesPage: React.FC = () => {
     return <Store className="w-6 h-6" />;
   };
 
+  // Resilient text search matching with singular/plural support
+  const matchesQuery = (text: string, q: string) => {
+    const t = text.toLowerCase();
+    if (t.includes(q)) return true;
+    // Handle common plural/singular forms (e.g. bakery/bakeries, repair/repairs, boutique/boutiques)
+    const qSingular = q.endsWith('ies') ? q.slice(0, -3) + 'y' : q.endsWith('s') ? q.slice(0, -1) : q;
+    if (qSingular.length >= 3 && t.includes(qSingular)) return true;
+    return false;
+  };
+
   const filteredCategories = categories.filter(c => {
     const q = search.toLowerCase().trim();
     if (!q) return true;
     return (
-      c.name.toLowerCase().includes(q) ||
-      (c.description && c.description.toLowerCase().includes(q)) ||
-      (CATEGORY_TAGS[c.name] && CATEGORY_TAGS[c.name].some(t => t.toLowerCase().includes(q)))
+      matchesQuery(c.name, q) ||
+      (c.description && matchesQuery(c.description, q)) ||
+      (c.slug && matchesQuery(c.slug, q)) ||
+      (CATEGORY_TAGS[c.name] && CATEGORY_TAGS[c.name].some(t => matchesQuery(t, q)))
     );
   });
 
@@ -142,15 +170,43 @@ export const CategoriesPage: React.FC = () => {
 
         {/* Live Filter Bar */}
         <div className="pt-4 max-w-md mx-auto relative">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search categories (e.g. bakery, repairs, boutique)..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-amber-500 shadow-xs"
+            className="w-full pl-10 pr-10 py-2.5 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-amber-500 shadow-xs"
+            aria-label="Search categories"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 p-1 rounded-full transition-colors focus:outline-hidden focus-visible:ring-1 focus-visible:ring-amber-500 cursor-pointer"
+              aria-label="Clear category search"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
+
+        {/* Live Filter Feedback */}
+        {search.trim() && (
+          <div className="flex items-center justify-center gap-2 text-xs text-neutral-500 pt-1">
+            <span>
+              Showing {filteredCategories.length} of {categories.length} categories
+            </span>
+            <span>•</span>
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              className="text-amber-600 dark:text-amber-400 hover:underline font-semibold cursor-pointer"
+            >
+              Reset search
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Categories Grid */}
@@ -168,18 +224,39 @@ export const CategoriesPage: React.FC = () => {
             </div>
           ))}
         </div>
+      ) : error ? (
+        <div className="py-16 text-center rounded-3xl border border-red-200 dark:border-red-900/50 bg-red-50/30 dark:bg-red-950/20 p-8 space-y-4 max-w-xl mx-auto">
+          <AlertTriangle className="w-10 h-10 mx-auto text-red-500" />
+          <div className="space-y-1">
+            <h3 className="font-bold text-base text-neutral-900 dark:text-white">
+              Unable to Load Categories
+            </h3>
+            <p className="text-xs text-neutral-600 dark:text-neutral-400">
+              {error}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={loadCategories}
+            className="px-4 py-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-xs hover:bg-amber-500 hover:text-black dark:hover:bg-amber-400 dark:hover:text-black cursor-pointer"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Try Again</span>
+          </button>
+        </div>
       ) : filteredCategories.length === 0 ? (
         <div className="py-16 text-center rounded-3xl border border-dashed border-neutral-300 dark:border-neutral-800 p-8 space-y-3">
           <Tag className="w-10 h-10 mx-auto text-neutral-400" />
           <h3 className="font-bold text-base text-neutral-900 dark:text-white">
-            No categories matching "{search}"
+            No categories matching &ldquo;{search}&rdquo;
           </h3>
           <p className="text-xs text-neutral-500 max-w-sm mx-auto">
-            Try a different term or clear your search to browse all categories.
+            Try searching for &ldquo;bakery&rdquo;, &ldquo;repairs&rdquo;, &ldquo;boutique&rdquo;, or &ldquo;wellness&rdquo;.
           </p>
           <button
+            type="button"
             onClick={() => setSearch('')}
-            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold transition-colors"
+            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold transition-colors cursor-pointer shadow-xs"
           >
             Clear Search
           </button>
@@ -194,6 +271,7 @@ export const CategoriesPage: React.FC = () => {
               badge: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300',
             };
             const tags = CATEGORY_TAGS[cat.name] || ['Local Store', 'Verified Quality', 'Direct Pickup', 'Neighbourhood'];
+            const count = typeof cat.businessCount === 'number' ? cat.businessCount : 0;
 
             return (
               <div
@@ -206,11 +284,10 @@ export const CategoriesPage: React.FC = () => {
                     <div className={`p-3.5 rounded-2xl ${colors.bg} ${colors.text} shrink-0`}>
                       {getCategoryIcon(cat.icon, cat.name)}
                     </div>
-                    {typeof cat.businessCount === 'number' && (
-                      <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${colors.badge}`}>
-                        {cat.businessCount === 1 ? '1 Store' : `${cat.businessCount} Stores`}
-                      </span>
-                    )}
+                    {/* Accurate Store Count Badge */}
+                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${colors.badge}`}>
+                      {count === 1 ? '1 Store' : `${count} Stores`}
+                    </span>
                   </div>
 
                   {/* Title & Description */}
@@ -229,7 +306,8 @@ export const CategoriesPage: React.FC = () => {
                       <Link
                         key={idx}
                         to={`/businesses?category=${encodeURIComponent(cat.name)}&q=${encodeURIComponent(tag)}`}
-                        className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+                        className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors focus:outline-hidden focus-visible:ring-1 focus-visible:ring-amber-500"
+                        title={`Filter ${cat.name} for ${tag}`}
                       >
                         {tag}
                       </Link>
@@ -237,11 +315,12 @@ export const CategoriesPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Primary CTA */}
+                {/* Primary CTA: Explore Category */}
                 <div className="pt-6 mt-4 border-t border-neutral-100 dark:border-neutral-800/80">
                   <Link
                     to={`/businesses?category=${encodeURIComponent(cat.name)}`}
-                    className="w-full py-2.5 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-900 dark:bg-neutral-800 dark:hover:bg-white text-neutral-900 hover:text-white dark:text-neutral-100 dark:hover:text-neutral-900 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs"
+                    className="w-full py-2.5 px-4 rounded-xl bg-neutral-100 hover:bg-neutral-900 dark:bg-neutral-800 dark:hover:bg-white text-neutral-900 hover:text-white dark:text-neutral-100 dark:hover:text-neutral-900 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-xs focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500"
+                    aria-label={`Explore all stores in ${cat.name}`}
                   >
                     <span>Explore {cat.name}</span>
                     <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
@@ -267,10 +346,11 @@ export const CategoriesPage: React.FC = () => {
           </p>
         </div>
         <Link
-          to="/business/register"
-          className="px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-md transition-colors shrink-0 flex items-center gap-2"
+          to={isOwner ? '/business/dashboard' : '/business/register'}
+          className="px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs shadow-md transition-colors shrink-0 flex items-center gap-2 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500"
         >
-          <Store className="w-4 h-4" /> Create Storefront Free
+          <Store className="w-4 h-4" />
+          <span>{isOwner ? 'Open Merchant Dashboard' : 'Create Storefront Free'}</span>
         </Link>
       </div>
     </div>

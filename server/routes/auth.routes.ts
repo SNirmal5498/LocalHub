@@ -7,26 +7,51 @@ import { authenticateToken, AuthRequest, getJwtSecret } from '../middleware/auth
 const router = Router();
 
 // Register
+// Register
 router.post('/register', async (req: Request, res: Response) => {
   try {
     const { name, email, phone, password, role = 'customer', profileImage } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ success: false, message: 'Name, email, and password are required.' });
+    // Validate name
+    if (!name || typeof name !== 'string' || name.trim().length < 2) {
+      return res.status(400).json({ success: false, message: 'Please provide a valid full name (at least 2 characters).' });
     }
 
-    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || typeof email !== 'string' || !emailRegex.test(email.trim())) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid email address.' });
+    }
+
+    // Validate password
+    if (!password || typeof password !== 'string' || password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
+    }
+
+    // Sanitize and validate role (strictly allow only public roles)
+    const assignedRole = role === 'business_owner' ? 'business_owner' : 'customer';
+
+    // Validate phone number (required for merchants, optional but validated for customers)
+    const cleanPhone = typeof phone === 'string' ? phone.trim() : '';
+    const phoneRegex = /^[+]?[0-9\s\-().]{10,15}$/;
+    if (assignedRole === 'business_owner' && (!cleanPhone || !phoneRegex.test(cleanPhone))) {
+      return res.status(400).json({ success: false, message: 'A valid 10-digit contact phone number is required for business owners.' });
+    } else if (cleanPhone && !phoneRegex.test(cleanPhone)) {
+      return res.status(400).json({ success: false, message: 'Please enter a valid phone number (e.g. +91 98765 43210).' });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser) {
-      return res.status(400).json({ success: false, message: 'An account with this email already exists.' });
+      return res.status(400).json({ success: false, message: 'An account with this email address already exists. Please sign in instead.' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const assignedRole = role === 'admin' ? 'customer' : role; // Prevent unauthorized admin signup
 
     const user = await User.create({
       name: name.trim(),
-      email: email.toLowerCase().trim(),
-      phone: phone || '',
+      email: cleanEmail,
+      phone: cleanPhone,
       password: hashedPassword,
       role: assignedRole,
       profileImage: profileImage || '',
@@ -50,8 +75,8 @@ router.post('/register', async (req: Request, res: Response) => {
       },
     });
   } catch (error: any) {
-    console.error('Registration error:', error);
-    return res.status(500).json({ success: false, message: error.message || 'Server error during registration.' });
+    console.error('Registration error:', error?.name || 'Error');
+    return res.status(500).json({ success: false, message: 'Unable to complete registration. Please try again later.' });
   }
 });
 

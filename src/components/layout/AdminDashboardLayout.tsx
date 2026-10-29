@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, Outlet } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext.js';
 import {
   Shield,
   Users,
@@ -11,10 +12,12 @@ import {
   Menu,
   X,
   ArrowLeft,
+  LogOut,
 } from 'lucide-react';
 
 export const AdminDashboardLayout: React.FC = () => {
   const location = useLocation();
+  const { user, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const adminNav = [
@@ -59,27 +62,45 @@ export const AdminDashboardLayout: React.FC = () => {
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop Sidebar */}
         <aside className="hidden md:flex flex-col w-64 bg-white dark:bg-neutral-900 border-r border-neutral-200 dark:border-neutral-800 p-4 space-y-1">
-          <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-neutral-400">
-            System Administration
+          <div className="flex-1 space-y-1">
+            {adminNav.map(item => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+              return (
+                <Link
+                  key={item.label}
+                  to={item.path}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
+                    isActive
+                      ? 'bg-sky-600 text-white shadow-xs'
+                      : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
           </div>
-          {adminNav.map(item => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.label}
-                to={item.path}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold transition-colors ${
-                  isActive
-                    ? 'bg-sky-600 text-white shadow-xs'
-                    : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white'
-                }`}
+
+          {/* Admin User Profile Card */}
+          {user && (
+            <div className="pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+              <div className="truncate pr-2">
+                <span className="text-xs font-bold text-neutral-900 dark:text-white block truncate">
+                  {user.name}
+                </span>
+                <span className="text-[10px] text-neutral-400 block truncate">{user.email}</span>
+              </div>
+              <button
+                onClick={logout}
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-red-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                title="Sign out of SuperAdmin console"
               >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </aside>
 
         {/* Mobile menu */}

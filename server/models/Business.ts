@@ -30,7 +30,14 @@ export interface IBusiness {
     sunday: { open: string; close: string; isClosed: boolean };
   };
   isOpen?: boolean;
-  status: 'pending' | 'active' | 'suspended';
+  status: 'pending' | 'active' | 'suspended' | 'rejected';
+  statusReason?: string;
+  statusAudit?: Array<{
+    status: string;
+    reason?: string;
+    changedBy: string;
+    changedAt: Date;
+  }>;
   rating: number;
   reviewCount: number;
   deliveryAvailable: boolean;
@@ -71,7 +78,14 @@ const BusinessSchema = new Schema<IBusiness>({
     saturday: { type: Object, default: () => ({ open: '10:00', close: '19:00', isClosed: false }) },
     sunday: { type: Object, default: () => ({ open: '10:00', close: '16:00', isClosed: false }) },
   },
-  status: { type: String, enum: ['pending', 'active', 'suspended'], default: 'pending', index: true },
+  status: { type: String, enum: ['pending', 'active', 'suspended', 'rejected'], default: 'pending', index: true },
+  statusReason: { type: String, default: '' },
+  statusAudit: [{
+    status: { type: String, required: true },
+    reason: { type: String, default: '' },
+    changedBy: { type: String, default: 'admin' },
+    changedAt: { type: Date, default: Date.now },
+  }],
   rating: { type: Number, default: 0 },
   reviewCount: { type: Number, default: 0 },
   deliveryAvailable: { type: Boolean, default: true },

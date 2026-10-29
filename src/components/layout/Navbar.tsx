@@ -80,12 +80,14 @@ export const Navbar: React.FC = () => {
         {/* Zone 2: 4-6 Clean Text Navigation Links */}
         <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-neutral-600 dark:text-neutral-300">
           {navLinks.map(link => {
-            const isActive = location.pathname === link.href;
+            const isActive =
+              location.pathname === link.href ||
+              (link.href === '/businesses' && (location.pathname === '/businesses' || location.pathname === '/explore'));
             return (
               <Link
                 key={link.label}
                 to={link.href}
-                className={`transition-colors hover:text-neutral-900 dark:hover:text-white ${
+                className={`transition-colors hover:text-neutral-900 dark:hover:text-white rounded-md py-1 px-1 focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500 ${
                   isActive ? 'text-amber-500 font-semibold' : ''
                 }`}
               >
@@ -96,12 +98,13 @@ export const Navbar: React.FC = () => {
         </nav>
 
         {/* Zone 3: Primary Actions */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Search trigger */}
           <Link
             to="/businesses"
-            className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500"
             title="Search local shops & services"
+            aria-label="Search local shops and services"
           >
             <Search className="w-4 h-4" />
           </Link>
@@ -110,8 +113,9 @@ export const Navbar: React.FC = () => {
           {user && (
             <Link
               to="/customer/favorites"
-              className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors relative"
+              className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors relative focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500"
               title="Saved Stores"
+              aria-label="Saved Stores"
             >
               <Heart className="w-4 h-4" />
               {user.favorites && user.favorites.length > 0 && (
@@ -122,9 +126,11 @@ export const Navbar: React.FC = () => {
 
           {/* Cart Button with Count Badge */}
           <button
+            type="button"
             onClick={() => setIsCartOpen(true)}
-            className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors relative"
+            className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors relative focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer"
             title="Shopping Cart"
+            aria-label="Shopping Cart"
           >
             <ShoppingBag className="w-4 h-4" />
             {itemCount > 0 && (
@@ -138,9 +144,11 @@ export const Navbar: React.FC = () => {
           {user && (
             <div className="relative" ref={notifDropdownRef}>
               <button
+                type="button"
                 onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
-                className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors relative"
+                className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors relative focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer"
                 title="Notifications"
+                aria-label="Notifications"
               >
                 <Bell className="w-4 h-4" />
                 {unreadCount > 0 && (
@@ -209,9 +217,11 @@ export const Navbar: React.FC = () => {
 
           {/* Dark / Light Toggle */}
           <button
+            type="button"
             onClick={toggleTheme}
-            className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer"
             title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
           </button>
@@ -220,8 +230,10 @@ export const Navbar: React.FC = () => {
           {user ? (
             <div className="relative" ref={userDropdownRef}>
               <button
+                type="button"
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="flex items-center gap-2 p-1.5 pl-2.5 rounded-full border border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 transition-colors text-xs font-semibold"
+                className="flex items-center gap-2 p-1.5 pl-2.5 rounded-full border border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 transition-colors text-xs font-semibold focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer"
+                aria-label="User account menu"
               >
                 <span className="max-w-[100px] truncate text-neutral-800 dark:text-neutral-200">
                   {user.name.split(' ')[0]}
@@ -330,8 +342,10 @@ export const Navbar: React.FC = () => {
 
           {/* Mobile hamburger */}
           <button
+            type="button"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-lg"
+            className="md:hidden p-2 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-white rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-amber-500 cursor-pointer"
+            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -342,15 +356,24 @@ export const Navbar: React.FC = () => {
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-4 pt-2 pb-6 space-y-3">
           <nav className="flex flex-col space-y-1">
-            {navLinks.map(link => (
-              <Link
-                key={link.label}
-                to={link.href}
-                className="px-3 py-2 rounded-lg text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map(link => {
+              const isActive =
+                location.pathname === link.href ||
+                (link.href === '/businesses' && (location.pathname === '/businesses' || location.pathname === '/explore'));
+              return (
+                <Link
+                  key={link.label}
+                  to={link.href}
+                  className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold'
+                      : 'text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
           <div className="pt-2 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between px-3">
             <span className="text-xs font-semibold text-neutral-500">Theme</span>

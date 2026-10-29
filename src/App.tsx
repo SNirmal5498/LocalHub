@@ -113,6 +113,10 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="/explore"
+                  element={<Navigate to="/businesses" replace />}
+                />
+                <Route
                   path="/categories"
                   element={
                     <PublicLayout>

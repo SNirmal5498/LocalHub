@@ -25,7 +25,20 @@ export async function connectMongo(): Promise<void> {
     console.log(`[MongoDB] ✅ Successfully connected to MongoDB database.`);
     await initBaseSystemData();
   } catch (err: any) {
-    console.error(`\n❌ [MongoDB Connection Error] Failed to connect to MongoDB using MONGO_URI: ${err.message}\n`);
+    console.warn(`\n⚠️ [MongoDB Connection Warning] Failed to connect to primary MONGO_URI: ${err.message}`);
+    const localUri = 'mongodb://127.0.0.1:27017/localhub';
+    if (mongoUri !== localUri) {
+      console.log(`[MongoDB] Attempting fallback to local MongoDB (${localUri})...`);
+      try {
+        await mongoose.connect(localUri, { serverSelectionTimeoutMS: 4000 });
+        isConnected = true;
+        console.log(`[MongoDB] ✅ Successfully connected to local MongoDB fallback database.`);
+        await initBaseSystemData();
+        return;
+      } catch (localErr: any) {
+        console.error(`❌ [MongoDB Local Fallback Error] ${localErr.message}`);
+      }
+    }
     throw err;
   }
 }

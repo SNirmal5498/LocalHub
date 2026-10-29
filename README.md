@@ -40,9 +40,4 @@ A production-style **MERN Stack digital platform** enabling small and local busi
 - **Backend**: Node.js, Express.js REST APIs, TypeScript (tsx)
 - **Security & Auth**: JWT (JSON Web Tokens), bcryptjs password hashing, role-based authorization middleware
 - **Data Persistence**: Persistent ACID document database engine with disk storage, Mongoose/MongoDB Atlas compatible
-<<<<<<< HEAD
-=======
-
 ---
-
->>>>>>> 41269a2 (Fix currency formatting and business locations)
